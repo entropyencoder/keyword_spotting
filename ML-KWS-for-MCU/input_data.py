@@ -32,7 +32,8 @@ from six.moves import urllib
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 
-from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
+# from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
+import audio_ops as contrib_audio
 from tensorflow.python.ops import io_ops
 from tensorflow.python.platform import gfile
 from tensorflow.python.util import compat
