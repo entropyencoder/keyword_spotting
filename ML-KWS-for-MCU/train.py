@@ -234,7 +234,8 @@ def main(_):
             fingerprint_input: train_fingerprints,
             ground_truth_input: train_ground_truth,
             learning_rate_input: learning_rate_value,
-            dropout_prob: 1.0
+            # dropout_prob: 1.0
+            dropout_prob: 0.5
         })
     train_writer.add_summary(train_summary, training_step)
     tf.logging.info('Step #%d: rate %f, accuracy %.2f%%, cross entropy %f' %
