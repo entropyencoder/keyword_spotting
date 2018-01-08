@@ -40,7 +40,7 @@ from tensorflow.python.ops import variable_scope as vs
 
 def prepare_model_settings(label_count, sample_rate, clip_duration_ms,
                            window_size_ms, window_stride_ms,
-                           dct_coefficient_count):
+                           dct_coefficient_count, use_mfcc):
   """Calculates common settings needed for all models.
 
   Args:
@@ -72,6 +72,7 @@ def prepare_model_settings(label_count, sample_rate, clip_duration_ms,
       'fingerprint_size': fingerprint_size,
       'label_count': label_count,
       'sample_rate': sample_rate,
+      'use_mfcc': use_mfcc,
   }
 
 

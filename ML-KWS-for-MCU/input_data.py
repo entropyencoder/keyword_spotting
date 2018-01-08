@@ -382,10 +382,17 @@ class AudioProcessor(object):
         window_size=model_settings['window_size_samples'],
         stride=model_settings['window_stride_samples'],
         magnitude_squared=True)
-    self.mfcc_ = contrib_audio.mfcc(
+    if model_settings['use_mfcc'] == True:
+      self.mfcc_ = contrib_audio.mfcc(
         spectrogram,
         wav_decoder.sample_rate,
         dct_coefficient_count=model_settings['dct_coefficient_count'])
+    else:
+      linear_to_mel_weight_matrix = tf.contrib.signal.linear_to_mel_weight_matrix(
+        num_mel_bins=model_settings['dct_coefficient_count'], num_spectrogram_bins=spectrogram.shape[-1].value,
+        sample_rate=model_settings['sample_rate'], upper_edge_hertz=7600.0, lower_edge_hertz=80.0)
+      self.mfcc_ = tf.tensordot(spectrogram, linear_to_mel_weight_matrix, 1)
+      self.mfcc_.set_shape(spectrogram.shape[:-1].concatenate(linear_to_mel_weight_matrix.shape[-1:]))
 
   def set_size(self, mode):
     """Calculates the number of samples in the dataset partition.

@@ -60,7 +60,7 @@ FLAGS = None
 
 def create_inference_graph(wanted_words, sample_rate, clip_duration_ms,
                            clip_stride_ms, window_size_ms, window_stride_ms,
-                           dct_coefficient_count, model_architecture, model_size_info):
+                           dct_coefficient_count, model_architecture, model_size_info, use_mfcc):
   """Creates an audio model with the nodes needed for inference.
 
   Uses the supplied arguments to create a model, and inserts the input and
@@ -80,7 +80,7 @@ def create_inference_graph(wanted_words, sample_rate, clip_duration_ms,
   words_list = input_data.prepare_words_list(wanted_words.split(','))
   model_settings = models.prepare_model_settings(
       len(words_list), sample_rate, clip_duration_ms, window_size_ms,
-      window_stride_ms, dct_coefficient_count)
+      window_stride_ms, dct_coefficient_count, use_mfcc)
   runtime_settings = {'clip_stride_ms': clip_stride_ms}
 
   wav_data_placeholder = tf.placeholder(tf.string, [], name='wav_data')
@@ -94,10 +94,17 @@ def create_inference_graph(wanted_words, sample_rate, clip_duration_ms,
       window_size=model_settings['window_size_samples'],
       stride=model_settings['window_stride_samples'],
       magnitude_squared=True)
-  fingerprint_input = contrib_audio.mfcc(
+  if model_settings['use_mfcc'] == True:
+    fingerprint_input = contrib_audio.mfcc(
       spectrogram,
       decoded_sample_data.sample_rate,
       dct_coefficient_count=dct_coefficient_count)
+  else:
+    linear_to_mel_weight_matrix = tf.contrib.signal.linear_to_mel_weight_matrix(
+      num_mel_bins=model_settings['dct_coefficient_count'], num_spectrogram_bins=spectrogram.shape[-1].value,
+      sample_rate=model_settings['sample_rate'], upper_edge_hertz=7600.0, lower_edge_hertz=80.0)
+    fingerprint_input = tf.tensordot(spectrogram, linear_to_mel_weight_matrix, 1)
+    fingerprint_input.set_shape(spectrogram.shape[:-1].concatenate(linear_to_mel_weight_matrix.shape[-1:]))
   fingerprint_frequency_size = model_settings['dct_coefficient_count']
   fingerprint_time_size = model_settings['spectrogram_length']
   reshaped_input = tf.reshape(fingerprint_input, [
@@ -120,7 +127,7 @@ def main(_):
                          FLAGS.clip_duration_ms, FLAGS.clip_stride_ms,
                          FLAGS.window_size_ms, FLAGS.window_stride_ms,
                          FLAGS.dct_coefficient_count, FLAGS.model_architecture,
-                         FLAGS.model_size_info)
+                         FLAGS.model_size_info, FLAGS.use_mfcc)
   models.load_variables_from_checkpoint(sess, FLAGS.checkpoint)
 
   # Turn all the variables into inline constants inside the graph and save it.
@@ -189,5 +196,10 @@ if __name__ == '__main__':
       help='Words to use (others will be added to an unknown label)',)
   parser.add_argument(
       '--output_file', type=str, help='Where to save the frozen graph.')
+  # Use MFCC as input feature if True, otherwise, use log mel spectrogram
+  parser.add_argument('--use_mfcc', dest='use_mfcc', action='store_true')
+  parser.add_argument('--no_use_mfcc', dest='use_mfcc', action='store_false')
+  parser.set_defaults(use_mfcc=True)
+  
   FLAGS, unparsed = parser.parse_known_args()
   tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
