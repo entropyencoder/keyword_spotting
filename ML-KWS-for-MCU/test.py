@@ -31,10 +31,12 @@ import tensorflow as tf
 import input_data
 import models
 
+from six.moves import xrange
+
 
 def run_inference(wanted_words, sample_rate, clip_duration_ms,
                            window_size_ms, window_stride_ms, dct_coefficient_count, 
-                           model_architecture, model_size_info):
+                           model_architecture, model_size_info, use_mfcc):
   """Creates an audio model with the nodes needed for inference.
 
   Uses the supplied arguments to create a model, and inserts the input and
@@ -56,7 +58,7 @@ def run_inference(wanted_words, sample_rate, clip_duration_ms,
   words_list = input_data.prepare_words_list(wanted_words.split(','))
   model_settings = models.prepare_model_settings(
       len(words_list), sample_rate, clip_duration_ms, window_size_ms,
-      window_stride_ms, dct_coefficient_count)
+      window_stride_ms, dct_coefficient_count, use_mfcc)
 
   audio_processor = input_data.AudioProcessor(
       FLAGS.data_url, FLAGS.data_dir, FLAGS.silence_percentage,
@@ -169,7 +171,7 @@ def main(_):
   run_inference(FLAGS.wanted_words, FLAGS.sample_rate,
       FLAGS.clip_duration_ms, FLAGS.window_size_ms,
       FLAGS.window_stride_ms, FLAGS.dct_coefficient_count,
-      FLAGS.model_architecture, FLAGS.model_size_info)
+      FLAGS.model_architecture, FLAGS.model_size_info, FLAGS.use_mfcc)
 
 
 if __name__ == '__main__':
@@ -263,6 +265,10 @@ if __name__ == '__main__':
       nargs="+",
       default=[128,128,128],
       help='Model dimensions - different for various models')
+  # Use MFCC as input feature if True, otherwise, use log mel spectrogram
+  parser.add_argument('--use_mfcc', dest='use_mfcc', action='store_true')
+  parser.add_argument('--no_use_mfcc', dest='use_mfcc', action='store_false')
+  parser.set_defaults(use_mfcc=True)
 
   FLAGS, unparsed = parser.parse_known_args()
   tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
