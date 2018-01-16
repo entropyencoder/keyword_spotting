@@ -126,8 +126,8 @@ with open("./test_ensemble_final_180117.csv", 'w') as ensemble_csv:
   #pred_csv_2 = open("./test_normal_CNN_7l_512ch_40dctcc_10winstride_0.50up_0.50dropout.csv", 'r')
   # Ensemble "./test_ensemble_final_180117.csv"
   pred_csv_0 = open("./test_normal_CNN_11l_512ch_20dctcc_10winstride_0.50up_0.50dropout.csv", 'r')
-  pred_csv_1 = open("./test_normal_CNN_7l_512ch_20dctcc_10winstride_0.50up_0.50dropout.csv", 'r')
-  pred_csv_2 = open("./test_normal_CNN_7l_512ch_40dctcc_10winstride_0.50up_0.50dropout.csv", 'r')
+  pred_csv_1 = open("./test_normal_CNN_11l_512ch_40dctcc_10winstride_0.50up_0.50dropout.csv", 'r')
+  pred_csv_2 = open("./test_normal_CNN_7l_512ch_20dctcc_10winstride_0.50up_0.50dropout.csv", 'r')
 
 
   ##################################################################################
